@@ -1,0 +1,11 @@
+# Cabal
+dist
+dist-*
+cabal.project.local
+
+# Nix
+result
+result-*
+
+# Direnv
+.direnv

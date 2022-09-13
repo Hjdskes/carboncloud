@@ -1,0 +1,34 @@
+cabal-version: 2.4
+name:          carboncloud
+version:       0.0.1
+license:       MIT
+license-file:  LICENSE
+author:        Jente Hidskes Ankarberg
+maintainer:    dev@hjdskes.nl
+
+common globals
+  ghc-options:
+    -Wall -Werror -Wredundant-constraints -fhide-source-paths
+    -Wderiving-defaults -Wpartial-fields -Wunused-packages
+
+  default-language:   Haskell2010
+  default-extensions:
+    DataKinds
+    DeriveGeneric
+    DerivingVia
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    LambdaCase
+    OverloadedStrings
+    ScopedTypeVariables
+    TypeApplications
+    TypeOperators
+    UndecidableInstances
+
+  build-depends:      base >=4.14.3.0 && <5
+
+library
+  import:          globals
+  hs-source-dirs:  src
+  exposed-modules: CarbonCloud
