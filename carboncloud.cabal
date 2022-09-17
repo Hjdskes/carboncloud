@@ -32,3 +32,18 @@ library
   import:          globals
   hs-source-dirs:  src
   exposed-modules: CarbonCloud
+  build-depends:   containers
+
+test-suite carboncloud
+  import:         globals
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: test
+  other-modules:
+    CarbonCloud.BepaSpec
+    CarbonCloud.Gen
+
+  build-depends:
+    , carboncloud
+    , containers
+    , hedgehog
