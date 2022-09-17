@@ -17,9 +17,11 @@ common globals
     DeriveGeneric
     DerivingVia
     FlexibleContexts
+    FlexibleInstances
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
     LambdaCase
+    MultiParamTypeClasses
     OverloadedStrings
     ScopedTypeVariables
     TypeApplications
@@ -31,8 +33,14 @@ common globals
 library
   import:          globals
   hs-source-dirs:  src
-  exposed-modules: CarbonCloud
-  build-depends:   containers
+  exposed-modules:
+    CarbonCloud
+    CarbonCloud.Refined
+
+  build-depends:
+    , containers
+    , refined
+    , text
 
 test-suite carboncloud
   import:         globals
@@ -42,8 +50,11 @@ test-suite carboncloud
   other-modules:
     CarbonCloud.BepaSpec
     CarbonCloud.Gen
+    CarbonCloud.RefinedSpec
 
   build-depends:
     , carboncloud
     , containers
+    , either
     , hedgehog
+    , refined

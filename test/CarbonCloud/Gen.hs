@@ -1,12 +1,24 @@
-module CarbonCloud.Gen (genTree) where
+module CarbonCloud.Gen (
+  genRefinedTree,
+  genTree,
+) where
 
 import CarbonCloud (Cost (..), NodeInfo (..), NodeName (..), Tree (..), TypeB (..))
+import CarbonCloud.Refined (NoBepa)
+import Data.Either.Combinators (rightToMaybe)
 import Hedgehog (Gen, MonadGen, Range)
-import Hedgehog.Gen qualified as Gen (alphaNum, choice, element, float, frequency, list, small, string)
+import Hedgehog.Gen qualified as Gen (alphaNum, choice, element, float, frequency, list, mapMaybe, small, string)
 import Hedgehog.Range qualified as Range (linear, linearFrac)
+import Refined (Refined, refine)
 
 genTree :: Gen Tree
-genTree =
+genTree = genTree' genNodeNameWithBepa
+
+genRefinedTree :: Gen (Refined NoBepa Tree)
+genRefinedTree = Gen.mapMaybe rightToMaybe $ refine <$> genTree' genNodeNameWithoutBepaCS
+
+genTree' :: Gen NodeName -> Gen Tree
+genTree' genNodeName =
   Gen.choice
     [ genTreeTypeA
     , genTreeTypeB
@@ -15,22 +27,22 @@ genTree =
     genTreeTypeA :: Gen Tree
     genTreeTypeA =
       Tree_TypeA
-        <$> genNodeInfo
+        <$> genNodeInfo genNodeName
         <*> genString
-        <*> genShrinkingList (Range.linear 0 10) genTree
+        <*> genShrinkingList (Range.linear 0 10) (genTree' genNodeName)
 
     genTreeTypeB :: Gen Tree
-    genTreeTypeB = Tree_TypeB <$> genTypeB
+    genTreeTypeB = Tree_TypeB <$> genTypeB genNodeName
 
-genTypeB :: Gen TypeB
-genTypeB =
+genTypeB :: Gen NodeName -> Gen TypeB
+genTypeB genNodeName =
   TypeB
     <$> genCost
     <*> genNodeName
-    <*> genShrinkingList (Range.linear 0 10) genTypeB
+    <*> genShrinkingList (Range.linear 0 10) (genTypeB genNodeName)
 
-genNodeInfo :: Gen NodeInfo
-genNodeInfo =
+genNodeInfo :: Gen NodeName -> Gen NodeInfo
+genNodeInfo genNodeName =
   NodeInfo
     <$> genCost
     <*> genNodeName
@@ -38,11 +50,9 @@ genNodeInfo =
 genCost :: Gen Cost
 genCost = Cost <$> Gen.float (Range.linearFrac 0 10)
 
--- Generates a node name.
--- We make sure to generate names containing a form of "bepa" frequently,
--- since this is what we want to assert on.
-genNodeName :: Gen NodeName
-genNodeName =
+-- Generates a node name likely to contain a form of "bepa" (case insensitive).
+genNodeNameWithBepa :: Gen NodeName
+genNodeNameWithBepa =
   NodeName
     <$> Gen.frequency
       [ (3, genBepaString)
@@ -54,6 +64,21 @@ genNodeName =
   where
     genBepaString :: Gen String
     genBepaString = Gen.element ["bepa", "Bepa", "BEPA"]
+
+-- Generates a node name without "Bepa" (case sensitive).
+genNodeNameWithoutBepaCS :: Gen NodeName
+genNodeNameWithoutBepaCS =
+  NodeName
+    <$> Gen.frequency
+      [ (3, genBepaString)
+      , (6, genString <> genBepaString)
+      , (6, genBepaString <> genString)
+      , (6, genString <> genBepaString <> genString)
+      , (1, genString)
+      ]
+  where
+    genBepaString :: Gen String
+    genBepaString = Gen.element ["bepa", "BEPA"]
 
 genString :: Gen String
 genString = Gen.string (Range.linear 0 10) Gen.alphaNum
